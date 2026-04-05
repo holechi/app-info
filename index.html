@@ -1,97 +1,123 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#1a6fd8"/>
+  <link rel="manifest" href="manifest.json"/>
   <title>정보검색</title>
   <style>
-    /* 폰 화면에 최적화된 디자인 */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, sans-serif;
+      font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
       background: linear-gradient(160deg, #1a6fd8 0%, #0ea5e9 100%);
       color: #fff; display: flex; flex-direction: column; align-items: center;
-      padding: 15px; min-height: 100dvh;
+      padding: 10px 8px 30px; min-height: 100dvh; overflow-x: hidden;
     }
-    .card {
-      width: 100%; max-width: 450px; background: rgba(255,255,255,0.2);
-      border-radius: 15px; padding: 15px; margin-bottom: 15px; backdrop-filter: blur(10px);
+    .app-title { text-align:center; margin-bottom:10px; }
+    .app-title h1 { font-size:2.8rem; font-weight:900; letter-spacing:5px; text-shadow:0 2px 15px rgba(0,0,0,0.2); }
+    .clock-card {
+      width:100%; max-width:480px; background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4);
+      border-radius:18px; padding:15px; text-align:center; margin-bottom:12px; backdrop-filter:blur(10px);
     }
-    #timeDisplay { font-size: 2.5rem; font-weight: bold; text-align: center; }
-    .section-title { width: 100%; max-width: 450px; font-weight: bold; margin: 10px 0; }
-    
-    /* 코인 버튼 */
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 450px; }
-    .btn { padding: 15px 5px; border-radius: 12px; text-align: center; text-decoration: none; color: #fff; font-weight: bold; font-size: 0.8rem; }
-    .btn-xrp { background: #1565c0; } .btn-shib { background: #e65100; } .btn-btc { background: #bf360c; }
-
-    /* 사진 메모 버튼 10개 */
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 450px; }
-    .memo-btn {
-      aspect-ratio: 1/1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 10px; color: #fff; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; font-size: 0.6rem;
-    }
-    .memo-btn span { font-size: 1.2rem; margin-bottom: 2px; }
-
-    /* 메모장 */
-    textarea { width: 100%; height: 120px; background: rgba(0,0,0,0.1); border: none; border-radius: 10px; color: #fff; padding: 10px; margin-top: 10px; outline: none; }
+    #timeDisplay { font-size:2.6rem; font-weight:800; letter-spacing:2px; }
+    .section-label { width:100%; max-width:480px; font-size:0.8rem; font-weight:700; margin:10px 0 6px; }
+    .btn-grid { width:100%; max-width:480px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+    .coin-btn { padding:14px 4px; border-radius:15px; text-decoration:none; color:#fff; display:flex; flex-direction:column; align-items:center; font-weight:bold; font-size:0.75rem; box-shadow:0 4px 10px rgba(0,0,0,0.25); }
+    .btn-xrp { background:linear-gradient(135deg,#1565c0,#42a5f5); }
+    .btn-shib { background:linear-gradient(135deg,#e65100,#ffb300); }
+    .btn-btc { background:linear-gradient(135deg,#bf360c,#ff7043); }
+    .spare-grid { width:100%; max-width:480px; display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-bottom:15px; }
+    .spare-btn { aspect-ratio:1/1.1; border:1px solid rgba(255,255,255,0.4); border-radius:14px; background:rgba(255,255,255,0.18); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; position:relative; }
+    .spare-btn span { font-size:1.3rem; margin-bottom:2px; }
+    .note-dot { position:absolute; top:5px; right:5px; width:7px; height:7px; border-radius:50%; background:#4ade80; display:none; }
+    .memo-card { width:100%; max-width:480px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:18px; padding:15px; }
+    textarea { width:100%; height:120px; background:transparent; border:none; color:#fff; font-size:1rem; outline:none; resize:none; }
+    .photomemo-overlay { display:none; position:fixed; inset:0; background:linear-gradient(160deg,#1e3a8a,#0369a1); z-index:300; flex-direction:column; padding:15px; }
+    .photomemo-overlay.active { display:flex; }
+    .pm-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+    #pmPhotos { display:flex; gap:8px; overflow-x:auto; margin-bottom:10px; padding:5px 0; }
+    .photo-slot { width:80px; height:80px; border-radius:10px; overflow:hidden; border:2px solid #fff; flex-shrink:0; position:relative; }
+    .photo-slot img { width:100%; height:100%; object-fit:cover; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div id="dateDisplay" style="text-align:center; font-size:0.8rem; opacity:0.8;"></div>
-    <div id="timeDisplay">00:00:00</div>
+  <div class="app-title"><h1>📡 정보검색</h1></div>
+  <div class="clock-card">
+    <div id="dateDisplay" style="font-size:0.8rem; opacity:0.8;"></div>
+    <div id="timeDisplay">00 : 00 : 00</div>
   </div>
-
-  <div class="section-title">🔍 코인 시세</div>
-  <div class="grid-3">
-    <a href="https://www.google.com/search?q=XRP+시세" target="_blank" class="btn btn-xrp">XRP</a>
-    <a href="https://www.google.com/search?q=SHIB+시세" target="_blank" class="btn btn-shib">SHIB</a>
-    <a href="https://www.google.com/search?q=BTC+시세" target="_blank" class="btn btn-btc">BTC</a>
+  <div class="section-label">🔍 코인 시세</div>
+  <div class="btn-grid">
+    <a class="coin-btn btn-xrp" href="https://www.google.com/search?q=XRP+시세" target="_blank">💠 XRP</a>
+    <a class="coin-btn btn-shib" href="https://www.google.com/search?q=SHIB+시세" target="_blank">🐕 SHIB</a>
+    <a class="coin-btn btn-btc" href="https://www.google.com/search?q=BTC+시세" target="_blank">₿ BTC</a>
   </div>
-
-  <div class="section-title">📷 사진 메모장 (10개)</div>
-  <div class="grid-5" id="memoGrid"></div>
-
-  <div class="section-title">📝 일반 메모</div>
-  <div class="card" style="margin-top:0;">
-    <textarea id="mainMemo" placeholder="내용을 입력하세요..."></textarea>
+  <div class="section-label">📷 사진 메모장</div>
+  <div class="spare-grid" id="spareGrid"></div>
+  <div class="memo-card">
+    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>📝 일반 메모</span><span id="saveStatus" style="color:#86efac; opacity:0;">✓ 저장됨</span></div>
+    <textarea id="memoArea" placeholder="여기에 내용을 입력하세요..."></textarea>
   </div>
-
+  <div class="photomemo-overlay" id="photomemoOverlay">
+    <div class="pm-header"><button onclick="closePM()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:8px 15px; border-radius:8px;">← 닫기</button><b id="pmTitle">메모</b><button onclick="savePM()" style="background:#fff; border:none; color:#1a6fd8; padding:8px 15px; border-radius:8px; font-weight:bold;">저장</button></div>
+    <div id="pmPhotos"></div>
+    <input type="file" id="photoInput" style="display:none" accept="image/*" multiple />
+    <button onclick="document.getElementById('photoInput').click()" style="width:100%; padding:12px; background:rgba(255,255,255,0.1); border:1px dashed #fff; color:#fff; border-radius:10px; margin-bottom:10px;">+ 사진 추가</button>
+    <textarea id="pmTextarea" style="flex:1; background:rgba(255,255,255,0.1); border-radius:10px; padding:12px;" placeholder="상세 내용을 적으세요..."></textarea>
+  </div>
   <script>
+    let currentIdx = null, pmPhotos = [];
     function updateClock() {
-      const now = new Date();
-      document.getElementById('dateDisplay').textContent = now.toLocaleDateString();
-      document.getElementById('timeDisplay').textContent = now.toLocaleTimeString('ko-KR', {hour12:false});
+      const n = new Date(); const days = ['일','월','화','수','목','금','토'];
+      document.getElementById('dateDisplay').textContent = `${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 (${days[n.getDay()]})`;
+      document.getElementById('timeDisplay').textContent = `${String(n.getHours()).padStart(2,'0')} : ${String(n.getMinutes()).padStart(2,'0')} : ${String(n.getSeconds()).padStart(2,'0')}`;
     }
     setInterval(updateClock, 1000); updateClock();
-
-    function renderButtons() {
-      const grid = document.getElementById('memoGrid');
-      grid.innerHTML = '';
-      for (let i = 1; i <= 10; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'memo-btn';
-        btn.innerHTML = `<span>📸</span>메모${i}`;
-        btn.onclick = () => alert(`메모 ${i}번 기능 정상 작동 중`);
-        grid.appendChild(btn);
+    function renderSpares() {
+      const grid = document.getElementById('spareGrid'); grid.innerHTML = '';
+      for (let i=1; i<=10; i++) {
+        const has = localStorage.getItem(`pm_text_${i}`) || localStorage.getItem(`pm_imgs_${i}`);
+        const btn = document.createElement('button'); btn.className = 'spare-btn';
+        btn.innerHTML = `<span>📸</span>메모${i}${has ? '<div class="note-dot" style="display:block"></div>':''}`;
+        btn.onclick = () => openPM(i); grid.appendChild(btn);
       }
     }
-
-    const mainMemo = document.getElementById('mainMemo');
-    mainMemo.value = localStorage.getItem('basic_memo') || '';
-    mainMemo.oninput = () => localStorage.setItem('basic_memo', mainMemo.value);
-
-    // 실행 시점 강제 고정
-    window.onload = renderButtons;
-    
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+    function openPM(idx) {
+      currentIdx = idx; document.getElementById('pmTitle').textContent = `📷 메모 ${idx}번`;
+      document.getElementById('pmTextarea').value = localStorage.getItem(`pm_text_${idx}`) || '';
+      pmPhotos = JSON.parse(localStorage.getItem(`pm_imgs_${idx}`) || '[]');
+      renderPMPhotos(); document.getElementById('photomemoOverlay').classList.add('active');
     }
+    function renderPMPhotos() {
+      const wrap = document.getElementById('pmPhotos'); wrap.innerHTML = '';
+      pmPhotos.forEach((src, i) => {
+        const slot = document.createElement('div'); slot.className = 'photo-slot';
+        slot.innerHTML = `<img src="${src}"><button onclick="event.stopPropagation();removePhoto(${i})" style="position:absolute; top:0; right:0; background:red; color:#fff; border:none; width:20px; height:20px; font-size:12px;">X</button>`;
+        wrap.appendChild(slot);
+      });
+    }
+    function removePhoto(i) { pmPhotos.splice(i, 1); renderPMPhotos(); }
+    document.getElementById('photoInput').onchange = function(e) {
+      for (const file of e.target.files) {
+        const reader = new FileReader();
+        reader.onload = (ev) => { pmPhotos.push(ev.target.result); renderPMPhotos(); };
+        reader.readAsDataURL(file);
+      }
+    };
+    function savePM() {
+      localStorage.setItem(`pm_text_${currentIdx}`, document.getElementById('pmTextarea').value);
+      localStorage.setItem(`pm_imgs_${currentIdx}`, JSON.stringify(pmPhotos));
+      closePM(); renderSpares();
+    }
+    function closePM() { document.getElementById('photomemoOverlay').classList.remove('active'); }
+    const mainMemo = document.getElementById('memoArea');
+    mainMemo.value = localStorage.getItem('main_memo') || '';
+    mainMemo.oninput = () => { localStorage.setItem('main_memo', mainMemo.value); document.getElementById('saveStatus').style.opacity = 1; setTimeout(()=>document.getElementById('saveStatus').style.opacity=0, 1000); };
+    window.onload = renderSpares;
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   </script>
 </body>
 </html>
