@@ -3,121 +3,736 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="정보검색"/>
   <meta name="theme-color" content="#1a6fd8"/>
   <link rel="manifest" href="manifest.json"/>
   <title>정보검색</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; min-height: 100dvh; overflow-x: hidden; }
     body {
-      font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
-      background: linear-gradient(160deg, #1a6fd8 0%, #0ea5e9 100%);
-      color: #fff; display: flex; flex-direction: column; align-items: center;
-      padding: 10px 8px 30px; min-height: 100dvh; overflow-x: hidden;
+      font-family: 'Segoe UI', 'Noto Sans KR', Arial, sans-serif;
+      background: linear-gradient(160deg, #1a6fd8 0%, #2563c4 30%, #1e88e5 60%, #0ea5e9 100%);
+      color: #fff;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 10px 8px 30px; min-height: 100dvh;
     }
-    .app-title { text-align:center; margin-bottom:10px; }
-    .app-title h1 { font-size:2.8rem; font-weight:900; letter-spacing:5px; text-shadow:0 2px 15px rgba(0,0,0,0.2); }
+
+    /* ══ 타이틀 ══ */
+    .app-title { width:100%; max-width:480px; text-align:center; margin-bottom:10px; }
+    .app-title h1 {
+      font-size: clamp(2.2rem, 9vw, 3.4rem); font-weight:900; letter-spacing:6px; color:#fff;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.25); line-height:1.1;
+    }
+    .app-title .subtitle { font-size:0.68rem; letter-spacing:3px; color:rgba(255,255,255,0.8); margin-top:3px; }
+
+    /* ══ 시계 ══ */
     .clock-card {
-      width:100%; max-width:480px; background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4);
-      border-radius:18px; padding:15px; text-align:center; margin-bottom:12px; backdrop-filter:blur(10px);
+      width:100%; max-width:480px;
+      background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.5);
+      border-radius:18px; padding:12px 16px; text-align:center; margin-bottom:12px;
+      backdrop-filter:blur(12px); box-shadow:0 4px 20px rgba(0,0,0,0.15);
     }
-    #timeDisplay { font-size:2.6rem; font-weight:800; letter-spacing:2px; }
-    .section-label { width:100%; max-width:480px; font-size:0.8rem; font-weight:700; margin:10px 0 6px; }
+    .clock-date { font-size:clamp(0.78rem,3vw,0.92rem); color:rgba(255,255,255,0.95); margin-bottom:2px; letter-spacing:1px; font-weight:600; }
+    .clock-time { font-size:clamp(2rem,7.5vw,2.8rem); font-weight:800; color:#fff; letter-spacing:3px; font-variant-numeric:tabular-nums; }
+
+    /* ══ 저장공간 표시 바 ══ */
+    .storage-bar {
+      width:100%; max-width:480px; margin-bottom:10px;
+      background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);
+      border-radius:12px; padding:7px 12px;
+      display:flex; align-items:center; gap:8px; font-size:0.65rem; color:rgba(255,255,255,0.85);
+    }
+    .storage-bar .sbar-label { white-space:nowrap; }
+    .storage-track { flex:1; height:6px; background:rgba(255,255,255,0.2); border-radius:3px; overflow:hidden; }
+    .storage-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,#4ade80,#22d3ee); transition:width .4s; }
+    .storage-fill.warn  { background:linear-gradient(90deg,#facc15,#fb923c); }
+    .storage-fill.danger{ background:linear-gradient(90deg,#f87171,#ef4444); }
+    .sbar-used { white-space:nowrap; font-weight:600; color:#fff; }
+
+    /* ══ 섹션 라벨 ══ */
+    .section-label {
+      width:100%; max-width:480px;
+      font-size:clamp(0.65rem,2.5vw,0.75rem); font-weight:700; letter-spacing:2px;
+      color:#fff; margin-bottom:7px; padding-left:2px;
+      display:flex; align-items:center; gap:6px;
+    }
+    .section-label .hint { font-size:0.56rem; color:rgba(255,255,255,0.65); font-weight:400; letter-spacing:0; }
+
+    /* ══ 코인 버튼 ══ */
     .btn-grid { width:100%; max-width:480px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-    .coin-btn { padding:14px 4px; border-radius:15px; text-decoration:none; color:#fff; display:flex; flex-direction:column; align-items:center; font-weight:bold; font-size:0.75rem; box-shadow:0 4px 10px rgba(0,0,0,0.25); }
-    .btn-xrp { background:linear-gradient(135deg,#1565c0,#42a5f5); }
+    .coin-btn {
+      padding:clamp(11px,3vw,16px) 4px; border:none; border-radius:16px;
+      font-size:clamp(0.7rem,2.6vw,0.84rem); font-weight:800; cursor:pointer;
+      transition:transform .13s; display:flex; flex-direction:column; align-items:center; gap:5px;
+      text-decoration:none; color:#fff; -webkit-tap-highlight-color:transparent;
+      box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    }
+    .coin-btn:active { transform:scale(0.93); }
+    .coin-icon { font-size:clamp(1.3rem,5vw,1.7rem); }
+    .btn-xrp  { background:linear-gradient(135deg,#1565c0,#42a5f5); }
     .btn-shib { background:linear-gradient(135deg,#e65100,#ffb300); }
-    .btn-btc { background:linear-gradient(135deg,#bf360c,#ff7043); }
-    .spare-grid { width:100%; max-width:480px; display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-bottom:15px; }
-    .spare-btn { aspect-ratio:1/1.1; border:1px solid rgba(255,255,255,0.4); border-radius:14px; background:rgba(255,255,255,0.18); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; position:relative; }
-    .spare-btn span { font-size:1.3rem; margin-bottom:2px; }
-    .note-dot { position:absolute; top:5px; right:5px; width:7px; height:7px; border-radius:50%; background:#4ade80; display:none; }
-    .memo-card { width:100%; max-width:480px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:18px; padding:15px; }
-    textarea { width:100%; height:120px; background:transparent; border:none; color:#fff; font-size:1rem; outline:none; resize:none; }
-    .photomemo-overlay { display:none; position:fixed; inset:0; background:linear-gradient(160deg,#1e3a8a,#0369a1); z-index:300; flex-direction:column; padding:15px; }
+    .btn-btc  { background:linear-gradient(135deg,#bf360c,#ff7043); }
+
+    /* ══ 사진메모 버튼 10개 ══ */
+    .spare-grid {
+      width:100%; max-width:480px;
+      display:grid; grid-template-columns:repeat(5,1fr);
+      gap:7px; margin-bottom:14px;
+    }
+    .spare-btn {
+      aspect-ratio:1/1.1; border:2px solid rgba(255,255,255,0.5); border-radius:14px;
+      background:rgba(255,255,255,0.18); color:rgba(255,255,255,0.9); cursor:pointer;
+      transition:all .15s; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:3px; padding:4px 2px; -webkit-tap-highlight-color:transparent;
+      position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.12);
+    }
+    .spare-btn:active { transform:scale(0.91); }
+    .spare-btn.has-note { background:rgba(255,255,255,0.32); border:2px solid rgba(255,255,255,0.85); }
+    .spare-btn .s-thumb { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:13px; opacity:0.6; }
+    .spare-btn .s-overlay { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .spare-btn .s-icon { font-size:clamp(1.1rem,4.5vw,1.5rem); }
+    .spare-btn .s-name { font-size:clamp(0.5rem,1.7vw,0.62rem); text-align:center; line-height:1.2; word-break:keep-all; padding:0 2px; color:#fff; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,0.4); }
+    .note-dot { position:absolute; top:5px; right:5px; z-index:2; width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 6px #4ade8099; }
+    /* 사진 수 뱃지 */
+    .photo-count { position:absolute; bottom:4px; right:5px; z-index:2; font-size:0.52rem; background:rgba(0,0,0,0.5); color:#fff; border-radius:8px; padding:1px 5px; }
+
+    /* ══ 사진메모장 풀스크린 ══ */
+    .photomemo-overlay {
+      display:none; position:fixed; inset:0;
+      background:linear-gradient(160deg,#1e3a8a,#1d4ed8,#0369a1);
+      z-index:300; flex-direction:column; overflow:hidden;
+    }
     .photomemo-overlay.active { display:flex; }
-    .pm-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
-    #pmPhotos { display:flex; gap:8px; overflow-x:auto; margin-bottom:10px; padding:5px 0; }
-    .photo-slot { width:80px; height:80px; border-radius:10px; overflow:hidden; border:2px solid #fff; flex-shrink:0; position:relative; }
-    .photo-slot img { width:100%; height:100%; object-fit:cover; }
+    .pm-header {
+      display:flex; align-items:center; gap:8px; padding:12px 12px 10px;
+      background:rgba(255,255,255,0.15); border-bottom:1px solid rgba(255,255,255,0.25); flex-shrink:0;
+    }
+    .pm-back { background:rgba(255,255,255,0.25); border:none; border-radius:10px; color:#fff; font-size:1.15rem; padding:7px 12px; cursor:pointer; flex-shrink:0; }
+    .pm-title-input { flex:1; background:transparent; border:none; outline:none; color:#fff; font-size:clamp(0.92rem,4vw,1.1rem); font-weight:700; min-width:0; }
+    .pm-title-input::placeholder { color:rgba(255,255,255,0.5); }
+    .pm-actions { display:flex; gap:6px; flex-shrink:0; }
+    .pm-save-btn { background:rgba(255,255,255,0.92); border:none; border-radius:10px; color:#1d4ed8; font-size:0.78rem; font-weight:800; padding:8px 13px; cursor:pointer; }
+    .pm-del-btn  { background:rgba(239,68,68,0.3); border:none; border-radius:10px; color:#fca5a5; font-size:0.78rem; font-weight:700; padding:8px 11px; cursor:pointer; }
+    .pm-datebar  { padding:5px 14px 2px; font-size:0.64rem; color:rgba(255,255,255,0.65); letter-spacing:1px; flex-shrink:0; }
+    .pm-saving-bar { padding:2px 14px 2px; font-size:0.68rem; color:rgba(255,255,255,0.9); flex-shrink:0; min-height:22px; text-align:center; font-weight:600; }
+
+    /* 사진 스크롤 */
+    .pm-photos { display:flex; gap:8px; padding:6px 12px 8px; overflow-x:auto; flex-shrink:0; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .pm-photos::-webkit-scrollbar { display:none; }
+    .photo-slot { flex-shrink:0; width:88px; height:88px; border-radius:12px; overflow:hidden; position:relative; cursor:pointer; border:2px solid rgba(255,255,255,0.3); }
+    .photo-slot img { width:100%; height:100%; object-fit:cover; display:block; }
+    .del-photo { position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.72); border:none; border-radius:50%; color:#fff; font-size:0.7rem; width:20px; height:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .add-photo-slot { flex-shrink:0; width:88px; height:88px; border-radius:12px; border:2px dashed rgba(255,255,255,0.5); background:rgba(255,255,255,0.12); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; color:rgba(255,255,255,0.85); font-size:0.62rem; }
+    .add-photo-slot .add-icon { font-size:1.7rem; }
+    #photoFileInput { display:none; }
+
+    /* 메모 텍스트 */
+    .pm-memo-wrap { flex:1; display:flex; flex-direction:column; padding:4px 12px 8px; min-height:0; }
+    .pm-textarea { flex:1; width:100%; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.35); border-radius:14px; color:#fff; font-size:clamp(0.9rem,3.5vw,1rem); line-height:1.72; padding:14px; resize:none; outline:none; font-family:inherit; min-height:140px; -webkit-appearance:none; }
+    .pm-textarea:focus { border-color:rgba(255,255,255,0.7); }
+    .pm-textarea::placeholder { color:rgba(255,255,255,0.4); }
+    .pm-status { text-align:right; font-size:0.66rem; color:#86efac; padding:4px 4px 0; opacity:0; transition:opacity .3s; flex-shrink:0; }
+    .pm-status.show { opacity:1; }
+
+    /* ══ 사진 전체보기 ══ */
+    .photo-viewer { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:500; flex-direction:column; align-items:center; justify-content:center; }
+    .photo-viewer.active { display:flex; }
+    .photo-viewer img { max-width:100%; max-height:82vh; object-fit:contain; border-radius:8px; }
+    .pv-close { position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.2); border:none; border-radius:50%; color:#fff; font-size:1.2rem; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .pv-counter { position:absolute; bottom:20px; color:rgba(255,255,255,0.7); font-size:0.8rem; }
+    .pv-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.18); border:none; border-radius:50%; color:#fff; font-size:1.6rem; width:46px; height:46px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .pv-prev { left:10px; } .pv-next { right:10px; }
+
+    /* ══ 이름 설정 바텀시트 ══ */
+    .name-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:400; align-items:flex-end; justify-content:center; }
+    .name-modal-overlay.active { display:flex; }
+    .name-modal { background:linear-gradient(160deg,#1e3a8a,#1d4ed8); border:1px solid rgba(255,255,255,0.3); border-radius:24px 24px 0 0; padding:16px 18px 28px; width:100%; max-width:480px; }
+    .nm-handle { width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.3); margin:0 auto 14px; }
+    .name-modal h3 { color:#fff; margin-bottom:12px; font-size:0.92rem; text-align:center; }
+    .nm-row { display:flex; gap:8px; margin-bottom:10px; }
+    .name-modal input { background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.4); border-radius:10px; padding:11px 12px; color:#fff; font-size:0.88rem; outline:none; -webkit-appearance:none; width:100%; }
+    .name-modal input::placeholder { color:rgba(255,255,255,0.45); }
+    .name-modal input:focus { border-color:rgba(255,255,255,0.8); }
+    .nm-btns { display:flex; gap:8px; margin-top:8px; }
+    .nm-btns button { flex:1; padding:12px; border:none; border-radius:12px; font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .nm-save   { background:rgba(255,255,255,0.95); color:#1d4ed8; }
+    .nm-cancel { background:rgba(255,255,255,0.15); color:#fff; }
+    .nm-delete { background:rgba(239,68,68,0.3); color:#fca5a5; }
+
+    /* ══ 날짜별 텍스트 메모 ══ */
+    .memo-card { width:100%; max-width:480px; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.4); border-radius:18px; padding:12px 14px 10px; margin-bottom:8px; box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+    .memo-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:6px; }
+    .memo-title-row { display:flex; align-items:center; gap:7px; }
+    .memo-title-row .mlabel { font-size:clamp(0.68rem,2.5vw,0.78rem); color:#fff; letter-spacing:2px; font-weight:700; }
+    .history-badge { font-size:0.57rem; background:rgba(255,255,255,0.25); color:#fff; border-radius:10px; padding:2px 7px; font-weight:600; }
+    .memo-date-tabs { display:flex; gap:5px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .memo-date-tabs::-webkit-scrollbar { display:none; }
+    .date-tab { flex-shrink:0; padding:4px 10px; border-radius:20px; font-size:0.68rem; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.4); background:transparent; color:rgba(255,255,255,0.75); white-space:nowrap; }
+    .date-tab.active { background:rgba(255,255,255,0.9); border-color:transparent; color:#1d4ed8; font-weight:800; }
+    .memo-clear { font-size:0.64rem; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.15); border:none; cursor:pointer; padding:4px 10px; border-radius:7px; }
+    textarea#memoArea { width:100%; min-height:110px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.35); border-radius:12px; color:#fff; font-size:clamp(0.84rem,3vw,0.92rem); line-height:1.68; padding:10px 12px; resize:vertical; outline:none; font-family:inherit; -webkit-appearance:none; margin-top:8px; }
+    textarea#memoArea:focus { border-color:rgba(255,255,255,0.75); }
+    textarea#memoArea::placeholder { color:rgba(255,255,255,0.45); }
+    .memo-footer { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+    .memo-viewing { font-size:0.63rem; color:rgba(255,255,255,0.8); }
+    .memo-saved   { font-size:0.63rem; color:#86efac; opacity:0; transition:opacity .3s; }
+    .memo-saved.show { opacity:1; }
+
+    /* 토스트 */
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); border-radius:12px; padding:10px 20px; font-size:0.78rem; z-index:9999; opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; }
+    .toast.show { opacity:1; }
   </style>
 </head>
 <body>
-  <div class="app-title"><h1>📡 정보검색</h1></div>
+
+  <div class="app-title">
+    <h1>📡 정보검색</h1>
+    <div class="subtitle">INFORMATION SEARCH</div>
+  </div>
+
   <div class="clock-card">
-    <div id="dateDisplay" style="font-size:0.8rem; opacity:0.8;"></div>
-    <div id="timeDisplay">00 : 00 : 00</div>
+    <div class="clock-date" id="dateDisplay"></div>
+    <div class="clock-time" id="timeDisplay"></div>
   </div>
-  <div class="section-label">🔍 코인 시세</div>
+
+  <!-- 저장공간 사용량 표시 -->
+  <div class="storage-bar">
+    <span class="sbar-label">💾 저장공간</span>
+    <div class="storage-track"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
+    <span class="sbar-used" id="storageUsed">측정 중...</span>
+  </div>
+
+  <div class="section-label">🔍 코인 빠른 검색</div>
   <div class="btn-grid">
-    <a class="coin-btn btn-xrp" href="https://www.google.com/search?q=XRP+시세" target="_blank">💠 XRP</a>
-    <a class="coin-btn btn-shib" href="https://www.google.com/search?q=SHIB+시세" target="_blank">🐕 SHIB</a>
-    <a class="coin-btn btn-btc" href="https://www.google.com/search?q=BTC+시세" target="_blank">₿ BTC</a>
+    <a class="coin-btn btn-xrp"  href="https://www.google.com/search?q=XRP+코인+시세"     target="_blank" rel="noopener"><span class="coin-icon">💠</span><span>XRP COIN</span></a>
+    <a class="coin-btn btn-shib" href="https://www.google.com/search?q=SHIB+코인+시세"    target="_blank" rel="noopener"><span class="coin-icon">🐕</span><span>SHIB COIN</span></a>
+    <a class="coin-btn btn-btc"  href="https://www.google.com/search?q=BTC+비트코인+시세" target="_blank" rel="noopener"><span class="coin-icon">₿</span><span>BTC COIN</span></a>
   </div>
-  <div class="section-label">📷 사진 메모장</div>
+
+  <div class="section-label">
+    📷 사진 메모장
+    <span class="hint">탭: 열기 &nbsp;|&nbsp; 길게 누르기: 이름 설정</span>
+  </div>
   <div class="spare-grid" id="spareGrid"></div>
+
   <div class="memo-card">
-    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>📝 일반 메모</span><span id="saveStatus" style="color:#86efac; opacity:0;">✓ 저장됨</span></div>
-    <textarea id="memoArea" placeholder="여기에 내용을 입력하세요..."></textarea>
+    <div class="memo-header">
+      <div class="memo-title-row">
+        <span class="mlabel">📝 메모</span>
+        <span class="history-badge" id="historyBadge">0일 기록</span>
+      </div>
+      <button class="memo-clear" onclick="clearTodayMemo()">오늘 삭제</button>
+    </div>
+    <div class="memo-date-tabs" id="dateTabs"></div>
+    <textarea id="memoArea" placeholder="여기에 메모를 입력하세요...&#10;날짜별로 자동 저장됩니다."></textarea>
+    <div class="memo-footer">
+      <span class="memo-viewing" id="memoViewing"></span>
+      <span class="memo-saved"   id="memoSaved">✓ 저장됨</span>
+    </div>
   </div>
+
+  <!-- 사진메모장 풀스크린 -->
   <div class="photomemo-overlay" id="photomemoOverlay">
-    <div class="pm-header"><button onclick="closePM()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; padding:8px 15px; border-radius:8px;">← 닫기</button><b id="pmTitle">메모</b><button onclick="savePM()" style="background:#fff; border:none; color:#1a6fd8; padding:8px 15px; border-radius:8px; font-weight:bold;">저장</button></div>
-    <div id="pmPhotos"></div>
-    <input type="file" id="photoInput" style="display:none" accept="image/*" multiple />
-    <button onclick="document.getElementById('photoInput').click()" style="width:100%; padding:12px; background:rgba(255,255,255,0.1); border:1px dashed #fff; color:#fff; border-radius:10px; margin-bottom:10px;">+ 사진 추가</button>
-    <textarea id="pmTextarea" style="flex:1; background:rgba(255,255,255,0.1); border-radius:10px; padding:12px;" placeholder="상세 내용을 적으세요..."></textarea>
+    <div class="pm-header">
+      <button class="pm-back" onclick="closePM()">←</button>
+      <input class="pm-title-input" id="pmTitle" type="text" placeholder="메모 제목..." maxlength="30" />
+      <div class="pm-actions">
+        <button class="pm-del-btn"  onclick="deletePM()">🗑</button>
+        <button class="pm-save-btn" onclick="savePM()">✓ 저장</button>
+      </div>
+    </div>
+    <div class="pm-datebar"    id="pmDatebar">새 메모</div>
+    <div class="pm-saving-bar" id="pmSavingBar"></div>
+    <div class="pm-photos"     id="pmPhotos"></div>
+    <input type="file" id="photoFileInput" accept="image/*" multiple />
+    <div class="pm-memo-wrap">
+      <textarea class="pm-textarea" id="pmTextarea" placeholder="사진과 함께 메모를 남겨보세요...&#10;&#10;자동으로 저장됩니다."></textarea>
+    </div>
+    <div class="pm-status" id="pmStatus">✓ 저장됨</div>
   </div>
-  <script>
-    let currentIdx = null, pmPhotos = [];
-    function updateClock() {
-      const n = new Date(); const days = ['일','월','화','수','목','금','토'];
-      document.getElementById('dateDisplay').textContent = `${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 (${days[n.getDay()]})`;
-      document.getElementById('timeDisplay').textContent = `${String(n.getHours()).padStart(2,'0')} : ${String(n.getMinutes()).padStart(2,'0')} : ${String(n.getSeconds()).padStart(2,'0')}`;
+
+  <!-- 사진 전체보기 -->
+  <div class="photo-viewer" id="photoViewer">
+    <button class="pv-close" onclick="closeViewer()">✕</button>
+    <button class="pv-nav pv-prev" onclick="viewerNav(-1)">‹</button>
+    <img id="viewerImg" src="" alt="" />
+    <button class="pv-nav pv-next" onclick="viewerNav(1)">›</button>
+    <div class="pv-counter" id="viewerCounter"></div>
+  </div>
+
+  <!-- 이름 설정 바텀시트 -->
+  <div class="name-modal-overlay" id="nameModalOverlay">
+    <div class="name-modal">
+      <div class="nm-handle"></div>
+      <h3>📷 사진메모 버튼 설정</h3>
+      <div class="nm-row">
+        <input type="text" id="nmInput" placeholder="버튼 이름 (예: 여행)" maxlength="8" style="flex:2" />
+        <input type="text" id="nmEmoji" placeholder="🌄 아이콘" maxlength="4" style="flex:1" />
+      </div>
+      <div class="nm-btns">
+        <button class="nm-cancel" onclick="closeNameModal()">취소</button>
+        <button class="nm-delete" onclick="deleteSpareNote()">내용삭제</button>
+        <button class="nm-save"   onclick="saveSpareLabel()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   ① 상수 & 변수
+══════════════════════════════════════════ */
+const DAYS        = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+const MEMO_PFX    = 'memo_';
+const SPARE_COUNT = 10;
+const DEFAULT_LABELS = [
+  {name:'여행',  emoji:'✈️'}, {name:'일상',  emoji:'📸'},
+  {name:'음식',  emoji:'🍽️'}, {name:'업무',  emoji:'💼'},
+  {name:'메모5', emoji:'📌'}, {name:'메모6', emoji:'🌿'},
+  {name:'메모7', emoji:'🎵'}, {name:'메모8', emoji:'🏃'},
+  {name:'메모9', emoji:'💡'}, {name:'메모10',emoji:'⭐'}
+];
+
+let currentMemoDate = '';
+let currentPMIdx    = null;
+let pmPhotos        = [];   // 현재 편집 중인 사진 배열 (base64)
+let editingNameIdx  = null;
+let viewerPhotos    = [];
+let viewerIdx       = 0;
+
+/* ══════════════════════════════════════════
+   ② 사진 저장 - localStorage 방식 (오류 없음)
+══════════════════════════════════════════ */
+// 사진도 localStorage에 저장 (IndexedDB 오류 완전 제거)
+
+/* ══════════════════════════════════════════
+   ③ localStorage 래퍼 (텍스트 데이터용)
+══════════════════════════════════════════ */
+function lsGet(k)   { try { return localStorage.getItem(k); }        catch(e){ return null; } }
+function lsSet(k,v) { try { localStorage.setItem(k,v); return true; } catch(e){ return false; } }
+function lsRemove(k){ try { localStorage.removeItem(k); }             catch(e){} }
+function lsLen()    { try { return localStorage.length; }             catch(e){ return 0; } }
+function lsKey(i)   { try { return localStorage.key(i); }             catch(e){ return null; } }
+
+/* ══════════════════════════════════════════
+   ④ 유틸
+══════════════════════════════════════════ */
+function pad(n) { return String(n).padStart(2,'0'); }
+function todayKey() {
+  const n = new Date();
+  return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+}
+function fmtKey(k) {
+  const [y,m,d] = k.split('-'), dt = new Date(+y,+m-1,+d);
+  const today = todayKey();
+  const yest  = (()=>{ const t=new Date(); t.setDate(t.getDate()-1);
+    return `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`; })();
+  if (k===today) return '오늘';
+  if (k===yest)  return '어제';
+  return `${m}/${d}(${DAYS[dt.getDay()][0]})`;
+}
+function fmtFull(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} 저장`;
+}
+
+/* 토스트 알림 */
+function showToast(msg, ok=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)';
+  t.style.color = '#fff';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+/* ══════════════════════════════════════════
+   ⑤ 사진 압축 (추가로 WebP 지원 시 WebP 사용)
+   단계별 압축: 파일 크기에 따라 quality 자동 조정
+══════════════════════════════════════════ */
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    // 파일 크기에 따라 압축 강도 조정
+    const sizeMB = file.size / 1024 / 1024;
+    const maxDim = sizeMB > 3 ? 700 : sizeMB > 1 ? 800 : 960;
+    const quality= sizeMB > 3 ? 0.60 : sizeMB > 1 ? 0.65 : 0.72;
+
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload  = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload  = () => {
+        let w=img.width, h=img.height;
+        if (w > maxDim || h > maxDim) {
+          const r = Math.min(maxDim/w, maxDim/h);
+          w = Math.round(w*r); h = Math.round(h*r);
+        }
+        const cv = document.createElement('canvas');
+        cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        // WebP 지원 여부 확인 후 포맷 선택
+        const fmt = cv.toDataURL('image/webp').startsWith('data:image/webp')
+          ? 'image/webp' : 'image/jpeg';
+        resolve(cv.toDataURL(fmt, quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ══════════════════════════════════════════
+   ⑥ 사진메모 데이터 (메타는 localStorage, 사진은 IndexedDB)
+══════════════════════════════════════════ */
+function getLabels()    { return JSON.parse(lsGet('pmLabels')||'null') || DEFAULT_LABELS.map(x=>({...x})); }
+function saveLabels(d)  { lsSet('pmLabels', JSON.stringify(d)); }
+
+function getPMMeta(i)   { return JSON.parse(lsGet(`pm_meta_${i}`)||'null') || {title:'',text:'',savedAt:null,photoCount:0}; }
+function savePMMeta(i,d){ lsSet(`pm_meta_${i}`, JSON.stringify(d)); }
+
+async function getPMPhotos(i) {
+  try {
+    const raw = lsGet(`pm_photos_${i}`);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch(e) { return []; }
+}
+async function savePMPhotos(i, arr) {
+  try {
+    lsSet(`pm_photos_${i}`, JSON.stringify(arr));
+    return true;
+  } catch(e) {
+    showToast('⚠️ 저장공간 부족 — 오래된 사진을 삭제해주세요');
+    return false;
+  }
+}
+async function deletePMAll(i) {
+  lsRemove(`pm_meta_${i}`);
+  lsRemove(`pm_photos_${i}`);
+}
+
+/* ══════════════════════════════════════════
+   ⑦ 저장공간 사용량 표시
+══════════════════════════════════════════ */
+async function updateStorageBar() {
+  try {
+    let used = 0;
+    for (let i=0; i<lsLen(); i++) {
+      const k = lsKey(i), v = lsGet(k);
+      if (k && v) used += k.length + v.length;
     }
-    setInterval(updateClock, 1000); updateClock();
-    function renderSpares() {
-      const grid = document.getElementById('spareGrid'); grid.innerHTML = '';
-      for (let i=1; i<=10; i++) {
-        const has = localStorage.getItem(`pm_text_${i}`) || localStorage.getItem(`pm_imgs_${i}`);
-        const btn = document.createElement('button'); btn.className = 'spare-btn';
-        btn.innerHTML = `<span>📸</span>메모${i}${has ? '<div class="note-dot" style="display:block"></div>':''}`;
-        btn.onclick = () => openPM(i); grid.appendChild(btn);
-      }
-    }
-    function openPM(idx) {
-      currentIdx = idx; document.getElementById('pmTitle').textContent = `📷 메모 ${idx}번`;
-      document.getElementById('pmTextarea').value = localStorage.getItem(`pm_text_${idx}`) || '';
-      pmPhotos = JSON.parse(localStorage.getItem(`pm_imgs_${idx}`) || '[]');
-      renderPMPhotos(); document.getElementById('photomemoOverlay').classList.add('active');
-    }
-    function renderPMPhotos() {
-      const wrap = document.getElementById('pmPhotos'); wrap.innerHTML = '';
-      pmPhotos.forEach((src, i) => {
-        const slot = document.createElement('div'); slot.className = 'photo-slot';
-        slot.innerHTML = `<img src="${src}"><button onclick="event.stopPropagation();removePhoto(${i})" style="position:absolute; top:0; right:0; background:red; color:#fff; border:none; width:20px; height:20px; font-size:12px;">X</button>`;
-        wrap.appendChild(slot);
+    const usedKB  = (used * 2 / 1024).toFixed(0);
+    const usedMB  = (used * 2 / 1048576).toFixed(1);
+    const maxMB   = 10; // localStorage 최대 약 10MB
+    const pct     = Math.min(100, (used * 2 / (maxMB * 1048576)) * 100);
+    document.getElementById('storageUsed').textContent =
+      usedMB >= 1 ? `${usedMB}MB / ${maxMB}MB` : `${usedKB}KB / ${maxMB*1024}KB`;
+    const fill = document.getElementById('storageFill');
+    fill.style.width = pct + '%';
+    fill.className = 'storage-fill' + (pct>80?' danger': pct>50?' warn':'');
+  } catch(e) {
+    document.getElementById('storageUsed').textContent = '측정불가';
+  }
+}
+
+/* ══════════════════════════════════════════
+   ⑧ 시계
+══════════════════════════════════════════ */
+function updateClock() {
+  const n = new Date();
+  document.getElementById('dateDisplay').textContent =
+    `${n.getFullYear()}년 ${pad(n.getMonth()+1)}월 ${pad(n.getDate())}일 ${DAYS[n.getDay()]}`;
+  document.getElementById('timeDisplay').textContent =
+    `${pad(n.getHours())} : ${pad(n.getMinutes())} : ${pad(n.getSeconds())}`;
+  const ds = pad(n.getDate());
+  if (updateClock._d !== ds) { updateClock._d = ds; renderMemoTabs(); }
+}
+updateClock._d = '';
+
+/* ══════════════════════════════════════════
+   ⑨ 사진메모 버튼 렌더링
+══════════════════════════════════════════ */
+function renderSpares() {
+  const grid = document.getElementById('spareGrid');
+  const labels = getLabels();
+  grid.innerHTML = '';
+  for (let i=0; i<SPARE_COUNT; i++) {
+    const lbl  = labels[i] || {name:`메모${i+1}`, emoji:'📷'};
+    const meta = getPMMeta(i);
+    const has  = meta.text || meta.photoCount > 0;
+    const btn  = document.createElement('button');
+    btn.className = 'spare-btn' + (has?' has-note':'');
+    btn.dataset.idx = i;
+
+    // 썸네일은 data-src 속성으로 지연 로딩
+    btn.innerHTML = `
+      <div class="s-overlay">
+        <span class="s-icon">${lbl.emoji||'📷'}</span>
+        <span class="s-name">${lbl.name}</span>
+      </div>
+      ${has ? '<span class="note-dot"></span>' : ''}
+      ${meta.photoCount > 0 ? `<span class="photo-count">📷${meta.photoCount}</span>` : ''}
+    `;
+
+    // 썸네일 비동기 로드
+    if (meta.photoCount > 0) {
+      idbGet(`pm_photos_${i}`).then(arr => {
+        if (arr && arr.length > 0) {
+          const img = document.createElement('img');
+          img.className = 's-thumb';
+          img.src = arr[0];
+          btn.insertBefore(img, btn.firstChild);
+        }
       });
     }
-    function removePhoto(i) { pmPhotos.splice(i, 1); renderPMPhotos(); }
-    document.getElementById('photoInput').onchange = function(e) {
-      for (const file of e.target.files) {
-        const reader = new FileReader();
-        reader.onload = (ev) => { pmPhotos.push(ev.target.result); renderPMPhotos(); };
-        reader.readAsDataURL(file);
-      }
-    };
-    function savePM() {
-      localStorage.setItem(`pm_text_${currentIdx}`, document.getElementById('pmTextarea').value);
-      localStorage.setItem(`pm_imgs_${currentIdx}`, JSON.stringify(pmPhotos));
-      closePM(); renderSpares();
-    }
-    function closePM() { document.getElementById('photomemoOverlay').classList.remove('active'); }
-    const mainMemo = document.getElementById('memoArea');
-    mainMemo.value = localStorage.getItem('main_memo') || '';
-    mainMemo.oninput = () => { localStorage.setItem('main_memo', mainMemo.value); document.getElementById('saveStatus').style.opacity = 1; setTimeout(()=>document.getElementById('saveStatus').style.opacity=0, 1000); };
-    window.onload = renderSpares;
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-  </script>
+
+    let pt;
+    btn.addEventListener('touchstart',()=>{ pt=setTimeout(()=>openNameModal(i),550); },{passive:true});
+    btn.addEventListener('touchend',  ()=>clearTimeout(pt));
+    btn.addEventListener('touchmove', ()=>clearTimeout(pt),{passive:true});
+    btn.addEventListener('click',       ()=>openPM(i));
+    btn.addEventListener('contextmenu', e=>{ e.preventDefault(); openNameModal(i); });
+    grid.appendChild(btn);
+  }
+}
+
+/* ══════════════════════════════════════════
+   ⑩ 사진메모장 열기 / 저장 / 닫기 (async)
+══════════════════════════════════════════ */
+async function openPM(idx) {
+  currentPMIdx = idx;
+  const meta = getPMMeta(idx);
+  const lbl  = getLabels()[idx] || {};
+  document.getElementById('pmTitle').value    = meta.title || lbl.name || '';
+  document.getElementById('pmTextarea').value = meta.text  || '';
+  document.getElementById('pmDatebar').textContent = meta.savedAt ? fmtFull(meta.savedAt) : '새 메모';
+  document.getElementById('pmSavingBar').textContent = '📂 사진 불러오는 중...';
+
+  pmPhotos = await getPMPhotos(idx);
+
+  document.getElementById('pmSavingBar').textContent = '';
+  renderPMPhotos();
+  document.getElementById('photomemoOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+async function savePM() {
+  if (currentPMIdx === null) return;
+  const now  = new Date().toISOString();
+  const title = document.getElementById('pmTitle').value.trim();
+  const text  = document.getElementById('pmTextarea').value;
+
+  // 텍스트 메타 → localStorage
+  savePMMeta(currentPMIdx, { title, text, savedAt:now, photoCount: pmPhotos.length });
+
+  // 사진 → IndexedDB (용량 제한 없음)
+  await savePMPhotos(currentPMIdx, pmPhotos);
+
+  document.getElementById('pmDatebar').textContent = fmtFull(now);
+  const st = document.getElementById('pmStatus');
+  st.classList.add('show');
+  setTimeout(()=>st.classList.remove('show'), 1800);
+
+  renderSpares();
+  updateStorageBar();
+}
+
+async function deletePM() {
+  if (currentPMIdx===null) return;
+  if (!confirm('이 사진메모 내용을 모두 삭제할까요?')) return;
+  await deletePMAll(currentPMIdx);
+  pmPhotos = [];
+  closePM();
+}
+
+function closePM() {
+  document.getElementById('photomemoOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  currentPMIdx = null;
+  renderSpares();
+}
+
+let pmAutoTimer;
+document.getElementById('pmTextarea').addEventListener('input',()=>{ clearTimeout(pmAutoTimer); pmAutoTimer=setTimeout(savePM,900); });
+document.getElementById('pmTitle').addEventListener('input',   ()=>{ clearTimeout(pmAutoTimer); pmAutoTimer=setTimeout(savePM,900); });
+
+/* ══════════════════════════════════════════
+   ⑪ 사진 처리
+══════════════════════════════════════════ */
+function renderPMPhotos() {
+  const wrap = document.getElementById('pmPhotos');
+  wrap.innerHTML = '';
+  pmPhotos.forEach((src,i)=>{
+    const slot = document.createElement('div');
+    slot.className='photo-slot';
+    slot.innerHTML=`<img src="${src}" alt="사진${i+1}" /><button class="del-photo" onclick="event.stopPropagation();removePhoto(${i})">✕</button>`;
+    slot.addEventListener('click', ()=>openViewer(i));
+    wrap.appendChild(slot);
+  });
+  const add = document.createElement('label');
+  add.className='add-photo-slot'; add.htmlFor='photoFileInput';
+  add.innerHTML=`<span class="add-icon">📷</span><span>사진 추가</span>`;
+  wrap.appendChild(add);
+}
+
+async function removePhoto(idx) {
+  pmPhotos.splice(idx,1);
+  renderPMPhotos();
+  await savePM();
+}
+
+document.getElementById('photoFileInput').addEventListener('change', async function(){
+  const files = Array.from(this.files);
+  if (!files.length) return;
+  const bar = document.getElementById('pmSavingBar');
+  let done=0;
+  for (const file of files) {
+    bar.textContent = `📷 압축 중... ${done+1}/${files.length} (${(file.size/1024/1024).toFixed(1)}MB)`;
+    try {
+      const comp = await compressImage(file);
+      pmPhotos.push(comp);
+      done++;
+    } catch(e) { showToast('사진 처리 실패: '+file.name); }
+  }
+  bar.textContent = `✓ ${done}장 추가 완료`;
+  setTimeout(()=>{ bar.textContent=''; },2200);
+  renderPMPhotos();
+  await savePM();
+  this.value='';
+});
+
+/* ══════════════════════════════════════════
+   ⑫ 사진 전체보기
+══════════════════════════════════════════ */
+function openViewer(idx) { viewerPhotos=[...pmPhotos]; viewerIdx=idx; renderViewer(); document.getElementById('photoViewer').classList.add('active'); }
+function closeViewer()   { document.getElementById('photoViewer').classList.remove('active'); }
+function viewerNav(dir)  { viewerIdx=(viewerIdx+dir+viewerPhotos.length)%viewerPhotos.length; renderViewer(); }
+function renderViewer()  {
+  document.getElementById('viewerImg').src = viewerPhotos[viewerIdx];
+  document.getElementById('viewerCounter').textContent = `${viewerIdx+1} / ${viewerPhotos.length}`;
+  const m=viewerPhotos.length>1;
+  document.querySelector('.pv-prev').style.display=m?'flex':'none';
+  document.querySelector('.pv-next').style.display=m?'flex':'none';
+}
+
+/* ══════════════════════════════════════════
+   ⑬ 버튼 이름 설정
+══════════════════════════════════════════ */
+function openNameModal(idx) {
+  editingNameIdx=idx;
+  const lbl=getLabels()[idx]||{};
+  document.getElementById('nmInput').value=lbl.name||'';
+  document.getElementById('nmEmoji').value=lbl.emoji||'';
+  document.getElementById('nameModalOverlay').classList.add('active');
+  setTimeout(()=>document.getElementById('nmInput').focus(),100);
+}
+function closeNameModal() { document.getElementById('nameModalOverlay').classList.remove('active'); editingNameIdx=null; }
+function saveSpareLabel() {
+  const name=document.getElementById('nmInput').value.trim();
+  const emoji=document.getElementById('nmEmoji').value.trim();
+  if (!name){ document.getElementById('nmInput').focus(); return; }
+  const labels=getLabels(); labels[editingNameIdx]={name,emoji:emoji||'📷'};
+  saveLabels(labels); renderSpares(); closeNameModal();
+}
+async function deleteSpareNote() {
+  if (!confirm('이 사진메모장 내용을 모두 삭제할까요?')) return;
+  await deletePMAll(editingNameIdx);
+  renderSpares(); closeNameModal(); updateStorageBar();
+}
+document.getElementById('nameModalOverlay').addEventListener('click',function(e){ if(e.target===this) closeNameModal(); });
+
+/* ══════════════════════════════════════════
+   ⑭ 날짜별 텍스트 메모
+══════════════════════════════════════════ */
+function getMemoKeys() {
+  const keys=[], len=lsLen();
+  for(let i=0;i<len;i++){ const k=lsKey(i); if(k&&k.startsWith(MEMO_PFX)) keys.push(k.replace(MEMO_PFX,'')); }
+  keys.sort((a,b)=>b.localeCompare(a));
+  const today=todayKey();
+  if(!keys.includes(today)) keys.unshift(today);
+  return [...new Set([today,...keys])];
+}
+function renderMemoTabs() {
+  const el=document.getElementById('dateTabs'); if(!el) return;
+  const keys=getMemoKeys();
+  el.innerHTML='';
+  keys.slice(0,14).forEach(k=>{
+    const t=document.createElement('button');
+    t.className='date-tab'+(k===currentMemoDate?' active':'');
+    t.textContent=fmtKey(k); t.onclick=()=>switchMemoDate(k);
+    el.appendChild(t);
+  });
+  const b=document.getElementById('historyBadge');
+  if(b) b.textContent=keys.filter(k=>lsGet(MEMO_PFX+k)).length+'일 기록';
+  updateMemoViewing();
+}
+function switchMemoDate(key) {
+  currentMemoDate=key;
+  const ta=document.getElementById('memoArea');
+  ta.value=lsGet(MEMO_PFX+key)||'';
+  ta.readOnly=(key!==todayKey());
+  ta.style.opacity=key!==todayKey()?'0.72':'1';
+  ta.placeholder=key!==todayKey()?'이 날의 메모입니다. (읽기 전용)':'여기에 메모를 입력하세요...\n날짜별로 자동 저장됩니다.';
+  renderMemoTabs();
+}
+function updateMemoViewing() {
+  const el=document.getElementById('memoViewing'); if(!el) return;
+  if(currentMemoDate===todayKey()){el.textContent='✏️ 오늘 메모 작성 중'; return;}
+  const [y,m,d]=currentMemoDate.split('-');
+  el.textContent=`📅 ${y}.${m}.${d} 기록 보기 (읽기전용)`;
+}
+
+const memoArea =document.getElementById('memoArea');
+const memoSaved=document.getElementById('memoSaved');
+let memoTimer;
+memoArea.addEventListener('input',()=>{
+  if(currentMemoDate!==todayKey()) return;
+  clearTimeout(memoTimer); memoSaved.classList.remove('show');
+  memoTimer=setTimeout(()=>{
+    lsSet(MEMO_PFX+currentMemoDate, memoArea.value);
+    renderMemoTabs(); memoSaved.classList.add('show');
+    setTimeout(()=>memoSaved.classList.remove('show'),1800);
+  },500);
+});
+function clearTodayMemo() {
+  if(currentMemoDate!==todayKey()){alert('오늘 탭을 선택한 후 삭제해주세요.'); return;}
+  if(confirm('오늘 메모를 모두 지울까요?')){ memoArea.value=''; lsRemove(MEMO_PFX+currentMemoDate); renderMemoTabs(); }
+}
+
+/* ══════════════════════════════════════════
+   ⑮ 앱 초기화
+══════════════════════════════════════════ */
+(async function init() {
+  currentMemoDate = todayKey();
+  memoArea.value  = lsGet(MEMO_PFX+currentMemoDate)||'';
+
+  renderSpares();
+  renderMemoTabs();
+  updateClock();
+  setInterval(updateClock, 1000);
+  updateStorageBar();
+  setInterval(updateStorageBar, 30000); // 30초마다 갱신
+})();
+
+// ====== Service Worker 등록 (오프라인 설치 지원) ======
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg){
+        console.log('[정보검색] 오프라인 지원 활성화 ✅', reg.scope);
+      })
+      .catch(function(err){
+        console.log('[정보검색] 서비스워커 등록 실패 (로컬파일 환경에서는 정상)', err);
+      });
+  });
+}
+</script>
 </body>
 </html>
