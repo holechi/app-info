@@ -1,7 +1,7 @@
 {
   "name": "정보검색 앱",
   "short_name": "정보검색",
-  "start_url": "정보검색.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1a6fd8",
   "theme_color": "#1a6fd8",
