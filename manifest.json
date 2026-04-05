@@ -1,15 +1,25 @@
 {
-  "name": "정보검색 앱",
+  "name": "정보검색",
   "short_name": "정보검색",
-  "start_url": "index.html",
+  "description": "나만의 메모와 정보를 빠르게 검색하는 앱",
+  "start_url": "./정보검색.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#1a6fd8",
   "theme_color": "#1a6fd8",
+  "lang": "ko",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1044/1044917.png",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%231a6fd8'/><circle cx='82' cy='82' r='38' stroke='white' stroke-width='14' fill='none'/><line x1='108' y1='108' x2='158' y2='158' stroke='white' stroke-width='14' stroke-linecap='round'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231a6fd8'/><circle cx='218' cy='218' r='100' stroke='white' stroke-width='36' fill='none'/><line x1='286' y1='286' x2='420' y2='420' stroke='white' stroke-width='36' stroke-linecap='round'/></svg>",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
-  ]
+  ],
+  "categories": ["utilities", "productivity"],
+  "prefer_related_applications": false
 }
