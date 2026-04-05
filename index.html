@@ -11,6 +11,7 @@
   <link rel="manifest" href="manifest.json"/>
   <title>정보검색</title>
   <style>
+    /* 기본 스타일 */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
@@ -19,51 +20,52 @@
       padding: 15px 10px; min-height: 100vh; overflow-x: hidden;
     }
     .clock-card {
-      width: 100%; max-width: 450px; background: rgba(255,255,255,0.2);
-      border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px;
-      backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);
+      width: 100%; max-width: 480px; background: rgba(255,255,255,0.22);
+      border-radius: 18px; padding: 15px; text-align: center; margin-bottom: 12px;
+      backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4);
     }
-    #timeDisplay { font-size: 2.8rem; font-weight: 800; }
-    
-    .section-label { width: 100%; max-width: 450px; font-weight: bold; margin: 15px 0 10px; font-size: 1rem; }
-    
-    /* 코인 버튼 */
-    .btn-grid { width: 100%; max-width: 450px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    #timeDisplay { font-size: 2.5rem; font-weight: 800; }
+
+    /* 코인 & 섹션 */
+    .section-label { width: 100%; max-width: 480px; font-weight: bold; margin: 10px 0; font-size: 0.9rem; letter-spacing: 1px; }
+    .btn-grid { width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
     .coin-btn {
-      padding: 15px 5px; border-radius: 15px; text-decoration: none; color: #fff;
+      padding: 12px 5px; border-radius: 12px; text-decoration: none; color: #fff;
       display: flex; flex-direction: column; align-items: center; font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2); background: rgba(255,255,255,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2); background: rgba(255,255,255,0.15); font-size: 0.8rem;
     }
-    .btn-xrp { background: #1565c0; } .btn-shib { background: #e65100; } .btn-btc { background: #bf360c; }
+    .btn-xrp { background: linear-gradient(135deg,#1565c0,#42a5f5); }
+    .btn-shib { background: linear-gradient(135deg,#e65100,#ffb300); }
+    .btn-btc { background: linear-gradient(135deg,#bf360c,#ff7043); }
 
-    /* 사진 메모장 그리드 (버튼 10개) */
-    .spare-grid {
-      width: 100%; max-width: 450px; display: grid;
-      grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;
-    }
+    /* 사진 메모장 10개 버튼 */
+    .spare-grid { width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-bottom: 15px; }
     .spare-btn {
-      aspect-ratio: 1/1; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 12px; color: #fff; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;
+      aspect-ratio: 1/1.1; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 14px; color: #fff; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; position: relative;
     }
-    .spare-btn span { font-size: 1.2rem; margin-bottom: 4px; }
+    .spare-btn span { font-size: 1.3rem; margin-bottom: 3px; }
+    .note-dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; background: #4ade80; border-radius: 50%; display: none; }
 
-    /* 메모 영역 */
-    .memo-card {
-      width: 100%; max-width: 450px; background: rgba(0,0,0,0.2);
-      border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);
-    }
-    textarea {
-      width: 100%; height: 200px; background: transparent; border: none;
-      color: #fff; font-size: 1rem; resize: none; outline: none;
-    }
-    #saveStatus { color: #4ade80; font-size: 0.8rem; text-align: right; opacity: 0; transition: 0.3s; }
+    /* 일반 메모장 */
+    .memo-card { width: 100%; max-width: 480px; background: rgba(255,255,255,0.15); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.3); }
+    textarea { width: 100%; height: 150px; background: transparent; border: none; color: #fff; font-size: 1rem; resize: none; outline: none; }
+    #saveStatus { color: #86efac; font-size: 0.75rem; text-align: right; opacity: 0; transition: 0.3s; }
+
+    /* 모달 (사진 메모용) */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; flex-direction: column; padding: 20px; }
+    .modal.active { display: flex; }
+    .modal-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .modal-content { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .modal-content textarea { height: 60%; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; }
+    .close-btn { padding: 5px 15px; background: #fff; color: #000; border-radius: 5px; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <div class="clock-card">
-    <div id="dateDisplay" style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;"></div>
+    <div id="dateDisplay" style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 3px;"></div>
     <div id="timeDisplay">00 : 00 : 00</div>
   </div>
 
@@ -75,63 +77,80 @@
   </div>
 
   <div class="section-label">📷 사진 메모장 (10개)</div>
-  <div class="spare-grid" id="spareGrid">
-    </div>
+  <div id="spareGrid" class="spare-grid"></div>
 
   <div class="memo-card">
-    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-      <span>📝 일반 메모</span>
+    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+      <span style="font-size:0.9rem; font-weight:bold;">📝 일반 메모</span>
       <span id="saveStatus">저장됨 ✓</span>
     </div>
-    <textarea id="memoArea" placeholder="내용을 입력하세요..."></textarea>
+    <textarea id="memoArea" placeholder="여기에 메모를 입력하세요..."></textarea>
+  </div>
+
+  <div id="photoModal" class="modal">
+    <div class="modal-header">
+      <span id="modalTitle" style="font-weight:bold;">메모 작성</span>
+      <button class="close-btn" onclick="closeModal()">닫기 & 저장</button>
+    </div>
+    <div class="modal-content">
+      <textarea id="photoMemoText" placeholder="사진 관련 메모를 입력하세요..."></textarea>
+      <div style="font-size:0.8rem; color:#ccc;">* 각 버튼별로 개별 저장됩니다.</div>
+    </div>
   </div>
 
   <script>
-    /* 1. 시계 기능 */
+    /* 1. 시계 */
     function updateClock() {
       const now = new Date();
       const days = ['일','월','화','수','목','금','토'];
       document.getElementById('dateDisplay').textContent = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
       document.getElementById('timeDisplay').textContent = `${String(now.getHours()).padStart(2,'0')} : ${String(now.getMinutes()).padStart(2,'0')} : ${String(now.getSeconds()).padStart(2,'0')}`;
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(updateClock, 1000); updateClock();
 
-    /* 2. 사진 메모장 버튼 10개 생성 기능 */
+    /* 2. 사진 메모장 버튼 10개 및 개별 저장 */
+    let currentIdx = null;
     function renderSpares() {
       const grid = document.getElementById('spareGrid');
-      grid.innerHTML = ''; 
+      grid.innerHTML = '';
       for (let i = 1; i <= 10; i++) {
+        const hasContent = localStorage.getItem(`photo_memo_${i}`);
         const btn = document.createElement('button');
         btn.className = 'spare-btn';
-        btn.innerHTML = `<span>📸</span>메모${i}`;
-        btn.onclick = () => alert(`메모 ${i}번을 클릭했습니다. (기능 준비 중)`);
+        btn.innerHTML = `<span>📸</span>메모${i}${hasContent ? '<div class="note-dot" style="display:block;"></div>' : ''}`;
+        btn.onclick = () => openModal(i);
         grid.appendChild(btn);
       }
     }
 
-    /* 3. 메모 자동 저장 기능 */
+    function openModal(idx) {
+      currentIdx = idx;
+      document.getElementById('modalTitle').textContent = `📷 사진 메모 ${idx}번`;
+      document.getElementById('photoMemoText').value = localStorage.getItem(`photo_memo_${idx}`) || '';
+      document.getElementById('photoModal').classList.add('active');
+    }
+
+    function closeModal() {
+      if (currentIdx !== null) {
+        const text = document.getElementById('photoMemoText').value;
+        localStorage.setItem(`photo_memo_${currentIdx}`, text);
+      }
+      document.getElementById('photoModal').classList.remove('active');
+      renderSpares();
+    }
+
+    /* 3. 일반 메모 자동 저장 */
     const memoArea = document.getElementById('memoArea');
     const saveStatus = document.getElementById('saveStatus');
-    memoArea.value = localStorage.getItem('my_app_memo') || '';
-
+    memoArea.value = localStorage.getItem('main_memo') || '';
     memoArea.addEventListener('input', () => {
-      localStorage.setItem('my_app_memo', memoArea.value);
+      localStorage.setItem('main_memo', memoArea.value);
       saveStatus.style.opacity = 1;
       setTimeout(() => { saveStatus.style.opacity = 0; }, 1000);
     });
 
-    /* 4. 앱 초기화 */
-    window.onload = function() {
-      renderSpares(); // 버튼 10개 그리기
-    };
-
-    /* 5. 서비스 워커 등록 */
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(() => {
-        console.log("서비스 워커 등록 완료");
-      });
-    }
+    /* 초기화 */
+    window.onload = renderSpares;
   </script>
 </body>
 </html>
